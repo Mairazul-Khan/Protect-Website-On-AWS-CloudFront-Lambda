@@ -112,13 +112,10 @@ exports.handler = (event, context, callback) => {
 
 ---
 
-## 📷 Example
-
-
 
 ---
 
 ## 📄 License
 
-MIT © YourName
+MIT © Mairazul Hasan Khan
 
