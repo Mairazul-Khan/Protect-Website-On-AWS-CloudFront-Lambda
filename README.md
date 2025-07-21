@@ -50,33 +50,35 @@ This project demonstrates how to serve a static website hosted on Amazon S3 usin
 ```javascript
 'use strict';
 
-const USERNAME = 'admin';
-const PASSWORD = 'yourpassword'; // Change this
+exports.handler = (event, context, callback) => {
+    const request = event.Records[0].cf.request;
+    const headers = request.headers;
 
-exports.handler = async (event) => {
-  const request = event.Records[0].cf.request;
-  const headers = request.headers;
+    // Define your username and password here
+    const USERNAME = 'mkdevops';
+    const PASSWORD = 'passmum'; // change this
+    const encodedCredentials = Buffer.from(`${USERNAME}:${PASSWORD}`).toString('base64');
 
-  const authString = 'Basic ' + Buffer.from(`${USERNAME}:${PASSWORD}`).toString('base64');
+    // Check for Basic Authentication header
+    if (typeof headers.authorization !== 'undefined') {
+        const providedCredentials = headers.authorization[0].value.split(' ')[1];
+        if (providedCredentials === encodedCredentials) {
+            // Continue request processing if credentials match
+            return callback(null, request);
+        }
+    }
 
-  if (
-    typeof headers.authorization === 'undefined' ||
-    headers.authorization[0].value !== authString
-  ) {
-    return {
-      status: '401',
-      statusDescription: 'Unauthorized',
-      headers: {
-        'www-authenticate': [{ key: 'WWW-Authenticate', value: 'Basic realm="Protected Area"' }],
-        'content-type': [{ key: 'Content-Type', value: 'text/html' }],
-      },
-      body: '<html><body><h1>401 Unauthorized</h1></body></html>',
+    // Return a 401 Unauthorized response if credentials are missing or don't match
+    const response = {
+        status: '401',
+        statusDescription: 'Unauthorized',
+        body: 'Unauthorized',
+        headers: {
+            'www-authenticate': [{ key: 'WWW-Authenticate', value:'Basic' }]
+        },
     };
-  }
-
-  return request;
+    callback(null, response);
 };
-```
 
 ---
 
